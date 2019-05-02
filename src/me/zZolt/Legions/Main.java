@@ -1,6 +1,7 @@
 package me.zZolt.Legions;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.EnderCrystal;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -27,6 +28,8 @@ public class Main extends JavaPlugin{
 		    	for (Player player: getServer().getOnlinePlayers()) {
 		    	
 		    	LegionsEntityDamageEventListener.sendActionBar(player);
+		    	
+		    	
 		    }
 		    	
 		    }
@@ -57,6 +60,25 @@ public class Main extends JavaPlugin{
 		LegionsEntityDamageEventListener.playerEnergy.put(player.getDisplayName(), 0);
 		
 		}
+	}
+	
+	public static void autoRemove(EnderCrystal end, Player player) {
+		
+		Bukkit.getScheduler().scheduleSyncDelayedTask(Bukkit.getPluginManager().getPlugin("Legions"), new Runnable(){
+		    public void run(){
+		    	
+		    	
+		    	if(!end.isDead()) {
+		    	
+		    	end.remove();
+		    	
+		    	}
+		    	
+		    	LegionsEntityDamageEventListener.endCrystals.remove(player);
+		    	
+		    }
+		}, 160);
+		
 	}
 		
 }
