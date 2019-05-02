@@ -2,19 +2,21 @@ package me.zZolt.Legions;
 
 
 import java.util.HashMap;
+
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.craftbukkit.v1_13_R2.entity.CraftPlayer;
+import org.bukkit.entity.EnderCrystal;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-
+import org.bukkit.util.Vector;
 
 import net.md_5.bungee.api.ChatColor;
 import net.minecraft.server.v1_13_R2.IChatBaseComponent.ChatSerializer;
@@ -26,12 +28,16 @@ public class LegionsEntityDamageEventListener
 implements Listener
 {
 
+	//TODO: cancel the explosion of the end crystal and make the xp bar turn yellow and count down from 8 seconds when u activate ability
+
 	static int maxEnergy = 18;
 	
 	int increment = 6;
 	
 	
 	public static HashMap<String, Integer> playerEnergy = new HashMap<String, Integer>();
+	
+	public static HashMap<Player, EnderCrystal> endCrystals = new HashMap<Player, EnderCrystal>();
 
 	@EventHandler
 	public void onEntityDamage(EntityDamageByEntityEvent event)
@@ -64,27 +70,38 @@ implements Listener
 		
 		Player player = event.getPlayer();
 		
-		if((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) && player.getItemInHand().getType() == Material.DIAMOND_SWORD && playerEnergy.get(player.getDisplayName()) == maxEnergy) {
+		Vector dir = player.getLocation().getDirection();
+		
+		if((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) && player.getItemInHand().getType() == Material.DIAMOND_SWORD) {
+			
+			if (endCrystals.containsKey(player)) {
+	            EnderCrystal crystal = endCrystals.get(player);
+
+	            player.teleport(crystal);
+	            crystal.remove();
+	            endCrystals.remove(player);
+	            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1F, 2F);
+	            player.getLocation().setDirection(dir);
+	            return;
+	        }
+			
+			if(playerEnergy.get(player.getDisplayName()) == maxEnergy) {
 			
 			player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1F, 2F);
 			
-			if(player.hasPotionEffect(PotionEffectType.SPEED)) {
-				
-				player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, player.getPotionEffect(PotionEffectType.SPEED).getDuration() + 60, player.getPotionEffect(PotionEffectType.SPEED).getAmplifier() + 1) , true);
-				
-			} else {
-				
-				player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 100, 0) , true);
-				
-			}
+			EnderCrystal eCrystal = (EnderCrystal) player.getWorld().spawnEntity(player.getLocation(), EntityType.ENDER_CRYSTAL);
 			
+			endCrystals.put(player, eCrystal);
 			
+			eCrystal.setShowingBottom(false);
 			
-			//player.setVelocity(new Vector(0, 1, 0));
+			Main.autoRemove(eCrystal, player);
 			
 			playerEnergy.put(player.getDisplayName(), 0);
 			
 			sendActionBar(player);
+			
+			}
 			
 		}
 		
@@ -131,7 +148,20 @@ implements Listener
 		
 	}
 	
-
+	/*@EventHandler
+	public void onDeath(EntityDeathEvent event) {
+		
+		EnderCrystal entity = (EnderCrystal) event.getEntity();
+		
+		if(endCrystals.containsValue(entity)) {
+			
+			entity.remove();
+			
+			
+		}
+		
+		
+	}*/
 	
 	
 }
