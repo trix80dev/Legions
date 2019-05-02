@@ -12,7 +12,7 @@ public class Main extends JavaPlugin{
 	public void onEnable()
 	{
 		this.getLogger().info("Legions has been enabled.!");
-		this.getServer().getPluginManager().registerEvents(new LegionsEntityDamageEventListener(this), this);
+		this.getServer().getPluginManager().registerEvents(new LegionsEntityDamageEventListener(), this);
 		
 		
 		for (Player player: getServer().getOnlinePlayers()) {
